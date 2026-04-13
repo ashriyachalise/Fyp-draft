@@ -43,6 +43,9 @@ exports.addPart = async (req, res) => {
 
     res.status(201).json(createdPart);
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.partNumber) {
+      return res.status(400).json({ message: 'A part with this Part Number already exists.' });
+    }
     res.status(400).json({ message: error.message });
   }
 };

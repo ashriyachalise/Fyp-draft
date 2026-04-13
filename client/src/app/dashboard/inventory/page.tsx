@@ -54,9 +54,9 @@ export default function InventoryPage() {
       setIsModalOpen(false);
       reset();
       fetchInventory();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error adding part:', err);
-      alert('Failed to add part');
+      alert(err.response?.data?.message || 'Failed to add part');
     }
   };
 
