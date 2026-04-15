@@ -5,7 +5,7 @@ const Notification = require('../models/Notification');
 
 exports.createOrder = async (req, res) => {
   try {
-    const { shippingDetails, paymentId, paymentMethod } = req.body;
+    const { shippingDetails, paymentId, paymentMethod, technician } = req.body;
     
     // Get user's cart
     const cart = await Cart.findOne({ user: req.user._id }).populate('items.part');
@@ -27,6 +27,7 @@ exports.createOrder = async (req, res) => {
     // Create order
     const order = new Order({
       user: req.user._id,
+      ...(technician && { technician }),
       items: orderItems,
       shippingDetails,
       totalAmount,

@@ -2,12 +2,13 @@ const mongoose = require('mongoose');
 
 const maintenanceSchema = new mongoose.Schema({
   machine: { type: mongoose.Schema.Types.ObjectId, ref: 'Machine', required: true },
-  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   maintenanceType: { 
     type: String, 
     default: 'routine' 
   },
-  scheduledDate: { type: Date, required: true },
+  scheduledDate: { type: Date },
   completionDate: { type: Date },
   status: { 
     type: String, 

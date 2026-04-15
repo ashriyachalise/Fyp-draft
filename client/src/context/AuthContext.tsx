@@ -1,13 +1,14 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import api from '@/services/api';
 
 interface User {
   _id: string;
   username: string;
   email: string;
-  role: 'admin' | 'manager' | 'technician';
+  role: 'admin' | 'manager' | 'technician' | 'client';
 }
 
 interface AuthContextType {
@@ -26,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkUser = async () => {
-      const token = sessionStorage.getItem('token');
+      const token = getCookie('token');
       if (token) {
         try {
           // Set a 5-second timeout for the profile check
@@ -37,8 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(data);
         } catch (error) {
           console.error('Auth check failed or timed out:', error);
-          // If it's a server error or timeout, we don't necessarily want to clear the token,
-          // but we do want to stop the loading screen.
+          // If token is invalid, we might want to clear it, but let middleware handle redirects
         }
       }
       setLoading(false);
@@ -48,13 +48,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/users/login', { email, password });
-    sessionStorage.setItem('token', data.token);
+    
+    // Set cookies with reasonable expiry (e.g., 7 days)
+    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 7 });
+    setCookie('role', data.role, { maxAge: 60 * 60 * 24 * 7 });
+    
     setUser(data);
-    router.push('/dashboard');
+    
+    if (data.role === 'client') {
+      router.push('/shop');
+    } else if (data.role === 'technician') {
+      router.push('/technician');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   const logout = () => {
-    sessionStorage.removeItem('token');
+    deleteCookie('token');
+    deleteCookie('role');
     setUser(null);
     router.push('/login');
   };

@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
-import { ShoppingCart, Package, Plus, Minus, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Package, Plus, Minus, ArrowLeft, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ShopPage() {
+  const { user, logout } = useAuth();
   const [parts, setParts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
@@ -64,10 +66,29 @@ export default function ShopPage() {
             <span className="text-xl font-bold text-white tracking-tight hidden sm:block">HeavyMach Shop</span>
           </div>
         </div>
-        <Link href="/cart" className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all border border-slate-700">
-          <ShoppingCart size={18} className="text-blue-400" />
-          <span>My Cart</span>
-        </Link>
+        <div className="flex items-center gap-3">
+          {user && (
+            <button 
+              onClick={logout} 
+              className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 font-medium rounded-xl transition-all border border-red-500/20"
+            >
+              <LogOut size={18} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          )}
+          <Link href="/client-maintenance" className="flex items-center gap-2 px-4 py-2 bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 font-medium rounded-xl transition-all border border-purple-500/20">
+            <span className="font-bold hidden sm:inline">Request Service</span>
+            <span className="font-bold sm:hidden">Service</span>
+          </Link>
+          <Link href="/client-chat" className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-medium rounded-xl transition-all border border-blue-500/20">
+            <span className="font-bold hidden md:inline">AI Assistant</span>
+            <span className="font-bold md:hidden">AI</span>
+          </Link>
+          <Link href="/cart" className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all border border-slate-700">
+            <ShoppingCart size={18} className="text-blue-400" />
+            <span className="hidden sm:inline">My Cart</span>
+          </Link>
+        </div>
       </nav>
 
       <main className="max-w-7xl mx-auto p-4 lg:p-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -12,6 +12,8 @@ export default function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti'>('esewa');
+  const [technicians, setTechnicians] = useState<any[]>([]);
+  const [selectedTechnician, setSelectedTechnician] = useState<string>('');
 
   useEffect(() => {
     const savedDetails = localStorage.getItem('shippingDetails');
@@ -28,6 +30,12 @@ export default function PaymentPage() {
           router.push('/shop');
         }
         setCart(data);
+        try {
+          const { data: techData } = await api.get('/users/technicians');
+          setTechnicians(techData);
+        } catch (e) {
+          console.error(e);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -46,7 +54,8 @@ export default function PaymentPage() {
       await api.post('/orders', {
         shippingDetails,
         paymentMethod,
-        paymentId: `${paymentMethod}_txn_` + Date.now()
+        paymentId: `${paymentMethod}_txn_` + Date.now(),
+        technician: selectedTechnician || undefined
       });
       
       localStorage.removeItem('shippingDetails');
@@ -106,6 +115,26 @@ export default function PaymentPage() {
                   <p className="pt-3 text-sm text-slate-400 mt-2 border-t border-slate-800">{shippingDetails.email} &bull; {shippingDetails.phone}</p>
                 </div>
               )}
+            </div>
+
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+                <Package className="text-blue-400" size={20} />
+                Request Technician (Optional)
+              </h3>
+              <p className="text-sm text-slate-400 mb-4">Select a technician if you need installation or maintenance assistance.</p>
+              <select 
+                value={selectedTechnician}
+                onChange={(e) => setSelectedTechnician(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 text-slate-300 rounded-xl p-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none"
+              >
+                <option value="">No Technician Required</option>
+                {technicians.map(tech => (
+                  <option key={tech._id} value={tech._id}>
+                    {tech.username} {tech.siteLocation && tech.siteLocation !== 'Unassigned' ? `- ${tech.siteLocation}` : ''} {!tech.isAvailable ? '(Busy)' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-xl">

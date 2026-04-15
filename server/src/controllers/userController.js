@@ -104,7 +104,7 @@ exports.getUserProfile = async (req, res) => {
 // @access  Private
 exports.getTechnicians = async (req, res) => {
   try {
-    const technicians = await User.find({ role: 'technician' }).select('username email');
+    const technicians = await User.find({ role: 'technician' }).select('username email isAvailable siteLocation');
     res.json(technicians);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -117,4 +117,48 @@ exports.getTechnicians = async (req, res) => {
 exports.getUsers = async (req, res) => {
   const users = await User.find({});
   res.json(users);
+};
+
+// @desc    Update technician availability and location
+// @route   PATCH /api/users/technician/status
+// @access  Private/Technician
+exports.updateTechnicianStatus = async (req, res) => {
+  try {
+    const { isAvailable, siteLocation } = req.body;
+    
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { 
+        ...(isAvailable !== undefined && { isAvailable }),
+        ...(siteLocation !== undefined && { siteLocation }) 
+      },
+      { new: true }
+    ).select('-password');
+    
+    res.json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a user
+// @route   DELETE /api/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Safety check: prevent user from deleting themselves
+    if (req.user && req.user._id.toString() === user._id.toString()) {
+      return res.status(400).json({ message: 'You cannot delete your own active session account.' });
+    }
+
+    await user.deleteOne();
+    res.json({ message: 'User removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };

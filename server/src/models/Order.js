@@ -18,6 +18,7 @@ const shippingSchema = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  technician: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   items: [orderItemSchema],
   shippingDetails: { type: shippingSchema, required: true },
   totalAmount: { type: Number, required: true },

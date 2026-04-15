@@ -10,6 +10,8 @@ const userSchema = new mongoose.Schema({
     enum: ['admin', 'manager', 'technician', 'client'], 
     default: 'technician' 
   },
+  isAvailable: { type: Boolean, default: true },
+  siteLocation: { type: String, default: 'Unassigned' },
   createdAt: { type: Date, default: Date.now }
 });
 

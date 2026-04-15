@@ -49,6 +49,7 @@ export default function AdminPage() {
     switch (role) {
       case 'admin': return 'bg-red-500/10 text-red-400 border-red-500/20';
       case 'manager': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+      case 'client': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       default: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
     }
   };
@@ -66,6 +67,18 @@ export default function AdminPage() {
       setErrorMsg(err.response?.data?.message || 'Failed to add user');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async (id: string, username: string) => {
+    if (!window.confirm(`Are you absolutely sure you want to delete the user "${username}"? This action cannot be undone.`)) return;
+
+    try {
+      await api.delete(`/users/${id}`);
+      await fetchUsers();
+    } catch (err: any) {
+      console.error('Failed to delete user:', err);
+      alert(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -127,7 +140,12 @@ export default function AdminPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"><Edit2 size={16} /></button>
-                        <button className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg"><Trash2 size={16} /></button>
+                        <button 
+                          onClick={() => handleDeleteUser(user._id, user.username)}
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                         <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg"><MoreVertical size={16} /></button>
                       </div>
                     </td>
@@ -212,6 +230,7 @@ export default function AdminPage() {
                     <option value="technician">Technician</option>
                     <option value="manager">Manager</option>
                     <option value="admin">Admin</option>
+                    <option value="client">Client</option>
                   </select>
                 </div>
               </div>

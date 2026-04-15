@@ -9,27 +9,40 @@ exports.scheduleMaintenance = async (req, res) => {
   const { machine, technician, maintenanceType, scheduledDate, notes } = req.body;
 
   try {
+    const isClient = req.user && req.user.role === 'client';
+    
     const maintenance = new Maintenance({
       machine,
-      technician,
+      technician: isClient ? undefined : technician,
+      requestedBy: isClient ? req.user._id : undefined,
       maintenanceType,
-      scheduledDate,
+      scheduledDate: isClient ? undefined : scheduledDate,
+      status: isClient ? 'requested' : 'scheduled',
       notes
     });
 
     const createdMaintenance = await maintenance.save();
     
-    // Update machine status if machine ID exists
-    if (machine) {
+    // Update machine status if machine ID exists and it's heavily scheduled
+    if (machine && !isClient) {
       await Machine.findByIdAndUpdate(machine, { status: 'maintenance' });
     }
 
-    await Notification.create({
-      recipient: req.user?._id,
-      title: 'Maintenance Task Scheduled',
-      message: `A new maintenance task (${maintenanceType}) has been scheduled for ${new Date(scheduledDate).toLocaleDateString()}.`,
-      type: 'maintenance_scheduled'
-    });
+    if (isClient) {
+      await Notification.create({
+        recipientRole: 'admin',
+        title: 'New Maintenance Request',
+        message: `Client ${req.user.username} has requested a maintenance task (${maintenanceType}).`,
+        type: 'maintenance_requested'
+      });
+    } else {
+      await Notification.create({
+        recipient: req.user?._id,
+        title: 'Maintenance Task Scheduled',
+        message: `A new maintenance task (${maintenanceType}) has been scheduled for ${new Date(scheduledDate).toLocaleDateString()}.`,
+        type: 'maintenance_scheduled'
+      });
+    }
 
     res.status(201).json(createdMaintenance);
   } catch (error) {
@@ -43,7 +56,7 @@ exports.scheduleMaintenance = async (req, res) => {
 exports.getMaintenanceRecords = async (req, res) => {
   try {
     const records = await Maintenance.find({})
-      .populate('machine', 'name model serialNumber')
+      .populate('machine', 'name model serialNumber location')
       .populate('technician', 'username email');
     res.json(records);
   } catch (error) {
@@ -56,10 +69,13 @@ exports.getMaintenanceRecords = async (req, res) => {
 // @access  Private/Technician/Manager
 exports.updateMaintenanceRecord = async (req, res) => {
   try {
-    const record = await Maintenance.findById(req.params.id);
+    const record = await Maintenance.findById(req.params.id).populate('machine');
 
     if (record) {
+      const prevStatus = record.status;
       record.status = req.body.status || record.status;
+      record.technician = req.body.technician || record.technician;
+      record.scheduledDate = req.body.scheduledDate || record.scheduledDate;
       record.completionDate = req.body.status === 'completed' ? Date.now() : record.completionDate;
       record.notes = req.body.notes || record.notes;
       record.partsUsed = req.body.partsUsed || record.partsUsed;
@@ -67,10 +83,20 @@ exports.updateMaintenanceRecord = async (req, res) => {
 
       const updatedRecord = await record.save();
 
-      // If completed, update machine status back to active (or as specified)
-      if (req.body.status === 'completed') {
+      // Notification for accepting the scheduled task
+      if (prevStatus === 'scheduled' && (record.status === 'in-progress' || record.status === 'pending')) {
+        await Notification.create({
+          recipientRole: 'admin',
+          title: 'Maintenance Task Accepted',
+          message: `${req.user.username} has accepted the maintenance task (${record.maintenanceType}) for ${record.machine?.name || 'Machine'}.`,
+          type: 'maintenance_accepted'
+        });
+      }
+
+      // If completed, update machine status back to active
+      if (req.body.status === 'completed' && prevStatus !== 'completed') {
         if (record.machine) {
-          await Machine.findByIdAndUpdate(record.machine, { 
+          await Machine.findByIdAndUpdate(record.machine._id, { 
             status: 'active',
             lastMaintenanceDate: Date.now() 
           });

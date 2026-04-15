@@ -20,8 +20,7 @@ import {
   Store,
   CheckCircle2,
   DollarSign,
-  ShieldCheck,
-  ClipboardList
+  ShieldCheck
 } from 'lucide-react';
 
 const SidebarItem = ({ href, icon: Icon, label, active }: any) => (
@@ -38,7 +37,7 @@ const SidebarItem = ({ href, icon: Icon, label, active }: any) => (
   </Link>
 );
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function TechnicianLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, loading } = useAuth();
@@ -57,18 +56,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const notifRef = useRef<HTMLDivElement>(null);
 
   const navigation = [
-    { label: 'Overview', href: '/dashboard', icon: BarChart3 },
-    { label: 'Monitoring & Parts', href: '/dashboard/monitoring', icon: ShieldCheck },
-    { label: 'Machines', href: '/dashboard/machines', icon: Activity },
-    { label: 'Inventory', href: '/dashboard/inventory', icon: Box },
-    { label: 'Customer Shop', href: '/shop', icon: Store },
-    { label: 'My Cart', href: '/cart', icon: ShoppingCart },
-    { label: 'Requests', href: '/dashboard/requests', icon: ClipboardList, role: 'admin' },
-    { label: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
-    { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-    { label: 'AI Chat', href: '/dashboard/ai-chat', icon: MessageSquare },
-    { label: 'Finances & Stock', href: '/dashboard/admin/finances', icon: DollarSign, role: 'admin' },
-    { label: 'Admin', href: '/dashboard/admin', icon: Shield, role: 'admin' },
+    { label: 'Overview', href: '/technician', icon: BarChart3 },
+    { label: 'Maintenance Requests', href: '/technician/maintenance', icon: Wrench },
+    { label: 'Monitoring', href: '/technician/monitoring', icon: ShieldCheck },
+    { label: 'Parts & Inventory', href: '/technician/parts', icon: Box },
   ];
 
   // 1) Fetch Notifications intelligently
