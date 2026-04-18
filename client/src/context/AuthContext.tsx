@@ -38,7 +38,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(data);
         } catch (error) {
           console.error('Auth check failed or timed out:', error);
-          // If token is invalid, we might want to clear it, but let middleware handle redirects
+          // Clear cookies and state if authentication fails
+          deleteCookie('token');
+          deleteCookie('role');
+          setUser(null);
         }
       }
       setLoading(false);

@@ -3,13 +3,21 @@ import { useState, useEffect } from 'react';
 import api from '@/services/api';
 import { ShoppingCart, Package, Plus, Minus, ArrowLeft, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function ShopPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [parts, setParts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchInventory = async () => {

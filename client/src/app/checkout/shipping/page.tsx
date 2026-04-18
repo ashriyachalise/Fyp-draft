@@ -4,7 +4,11 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Truck, MapPin, User, Phone, Mail } from 'lucide-react';
 import Link from 'next/link';
 
+import { useAuth } from '@/context/AuthContext';
+import { useEffect } from 'react';
+
 export default function ShippingPage() {
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -14,6 +18,12 @@ export default function ShippingPage() {
     city: '',
     postalCode: ''
   });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

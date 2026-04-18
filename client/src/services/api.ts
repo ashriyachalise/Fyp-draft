@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getCookie } from 'cookies-next';
+import { getCookie, deleteCookie } from 'cookies-next';
 
 const api = axios.create({
   baseURL: 'http://localhost:5000/api',
@@ -12,5 +12,23 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor to handle unauthorized access
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Clear authentication state
+      deleteCookie('token');
+      deleteCookie('role');
+      
+      // Redirect to login if on the client side
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

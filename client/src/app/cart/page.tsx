@@ -4,9 +4,20 @@ import api from '@/services/api';
 import { ShoppingCart, Trash2, ArrowLeft, Plus, Minus, CreditCard, Package, Sparkles, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+
 export default function CartPage() {
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
 
   const fetchCart = async () => {
     try {

@@ -12,11 +12,13 @@ export default function LoginPage() {
   const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
+  /* 
   useEffect(() => {
     if (user && !authLoading) {
       router.push('/dashboard');
     }
   }, [user, authLoading, router]);
+  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

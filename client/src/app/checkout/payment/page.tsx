@@ -5,7 +5,10 @@ import api from '@/services/api';
 import { ArrowLeft, CreditCard, CheckCircle2, Package, MapPin, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function PaymentPage() {
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [shippingDetails, setShippingDetails] = useState<any>(null);
   const [cart, setCart] = useState<any>(null);
@@ -14,6 +17,12 @@ export default function PaymentPage() {
   const [paymentMethod, setPaymentMethod] = useState<'esewa' | 'khalti'>('esewa');
   const [technicians, setTechnicians] = useState<any[]>([]);
   const [selectedTechnician, setSelectedTechnician] = useState<string>('');
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const savedDetails = localStorage.getItem('shippingDetails');

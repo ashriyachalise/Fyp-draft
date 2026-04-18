@@ -14,7 +14,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 2. If token exists and trying to access login, redirect to appropriate home
+  // 2. If token exists and trying to access login, we now allow it 
+  // (User specifically requested to see login page even if session exists)
+  /* 
   if (token && isPublicRoute) {
     if (role === 'client') {
       return NextResponse.redirect(new URL('/shop', request.url));
@@ -24,6 +26,7 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
+  */
 
   // 3. (Optional) Role-based internal protection
   // If a technician tries to access /shop, you might want to redirect them to /technician

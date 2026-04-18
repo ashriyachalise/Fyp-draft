@@ -5,8 +5,11 @@ import { useAuth } from '@/context/AuthContext';
 import { Wrench, CheckCircle2, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
+import { useRouter } from 'next/navigation';
+
 export default function ClientMaintenancePage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [machines, setMachines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -17,6 +20,12 @@ export default function ClientMaintenancePage() {
   const [success, setSuccess] = useState(false);
 
   const [myRequests, setMyRequests] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace('/login');
+    }
+  }, [user, authLoading, router]);
 
   useEffect(() => {
     const fetchData = async () => {
