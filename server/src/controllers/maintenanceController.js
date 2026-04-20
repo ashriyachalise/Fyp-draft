@@ -1,6 +1,7 @@
 const Maintenance = require('../models/Maintenance');
 const Machine = require('../models/Machine');
 const Notification = require('../models/Notification');
+const MachineRequest = require('../models/MachineRequest');
 
 // @desc    Schedule maintenance
 // @route   POST /api/maintenance
@@ -93,13 +94,19 @@ exports.updateMaintenanceRecord = async (req, res) => {
         });
       }
 
-      // If completed, update machine status back to active
+      // If completed, update machine status back to idle so it can be requested again
       if (req.body.status === 'completed' && prevStatus !== 'completed') {
         if (record.machine) {
           await Machine.findByIdAndUpdate(record.machine._id, { 
-            status: 'active',
+            status: 'idle',
             lastMaintenanceDate: Date.now() 
           });
+
+          // Terminate any active leases for this machine so it cleanly resets for new requests
+          await MachineRequest.updateMany(
+            { machine: record.machine._id, status: 'active' },
+            { status: 'returned', returnDate: Date.now() }
+          );
         }
 
         await Notification.create({

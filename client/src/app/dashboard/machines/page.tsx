@@ -67,6 +67,8 @@ export default function MachinesPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
+      case 'idle': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+      case 'reserved': return 'text-orange-400 bg-orange-400/10 border-orange-400/20';
       case 'maintenance': return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
       case 'down': return 'text-red-400 bg-red-400/10 border-red-400/20';
       default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';

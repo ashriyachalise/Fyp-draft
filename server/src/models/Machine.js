@@ -6,8 +6,8 @@ const machineSchema = new mongoose.Schema({
   serialNumber: { type: String, required: true, unique: true },
   status: { 
     type: String, 
-    enum: ['active', 'idle', 'down', 'maintenance'], 
-    default: 'active' 
+    enum: ['idle', 'reserved', 'active', 'maintenance', 'down'], 
+    default: 'idle' 
   },
   location: { type: String },
   purchaseDate: { type: Date },

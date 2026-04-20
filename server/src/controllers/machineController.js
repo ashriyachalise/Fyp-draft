@@ -1,12 +1,28 @@
 const Machine = require('../models/Machine');
+const MachineRequest = require('../models/MachineRequest');
 
 // @desc    Get all machines
 // @route   GET /api/machines
 // @access  Private
 exports.getMachines = async (req, res) => {
   try {
-    const machines = await Machine.find({});
-    res.json(machines);
+    const machines = await Machine.find({}).lean();
+    
+    // Dynamically derive location for each machine
+    const updatedMachines = await Promise.all(machines.map(async (machine) => {
+      if (machine.status === 'active') {
+        const activeRequest = await MachineRequest.findOne({ 
+          machine: machine._id, 
+          status: 'active' 
+        });
+        machine.location = activeRequest ? activeRequest.siteLocation : 'Location Unknown';
+      } else {
+        machine.location = 'Not in use';
+      }
+      return machine;
+    }));
+
+    res.json(updatedMachines);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -17,8 +33,17 @@ exports.getMachines = async (req, res) => {
 // @access  Private
 exports.getMachineById = async (req, res) => {
   try {
-    const machine = await Machine.findById(req.params.id);
+    const machine = await Machine.findById(req.params.id).lean();
     if (machine) {
+      if (machine.status === 'active') {
+        const activeRequest = await MachineRequest.findOne({ 
+          machine: machine._id, 
+          status: 'active' 
+        });
+        machine.location = activeRequest ? activeRequest.siteLocation : 'Location Unknown';
+      } else {
+        machine.location = 'Not in use';
+      }
       res.json(machine);
     } else {
       res.status(404).json({ message: 'Machine not found' });

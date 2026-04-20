@@ -57,18 +57,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const notifRef = useRef<HTMLDivElement>(null);
 
   const navigation = [
-    { label: 'Overview', href: '/dashboard', icon: BarChart3 },
-    { label: 'Monitoring & Parts', href: '/dashboard/monitoring', icon: ShieldCheck },
-    { label: 'Machines', href: '/dashboard/machines', icon: Activity },
-    { label: 'Inventory', href: '/dashboard/inventory', icon: Box },
+    { label: 'Overview', href: '/dashboard', icon: BarChart3, roles: ['admin', 'manager', 'technician'] },
+    { label: 'Contractor Hub', href: '/contractor', icon: BarChart3, role: 'contractor' },
+    { label: 'Monitored Assets', href: '/contractor/machines', icon: Activity, role: 'contractor' },
+    { label: 'Lending History', href: '/contractor/history', icon: ClipboardList, role: 'contractor' },
+    { label: 'Maintenance', href: '/contractor/maintenance', icon: Wrench, role: 'contractor' },
+    { label: 'Monitoring & Parts', href: '/dashboard/monitoring', icon: ShieldCheck, roles: ['admin', 'manager', 'technician'] },
+    { label: 'Machines', href: '/dashboard/machines', icon: Activity, roles: ['admin', 'manager', 'technician'] },
+    { label: 'Inventory', href: '/dashboard/inventory', icon: Box, roles: ['admin', 'manager', 'technician'] },
     { label: 'Customer Shop', href: '/shop', icon: Store },
     { label: 'My Cart', href: '/cart', icon: ShoppingCart },
     { label: 'Requests', href: '/dashboard/requests', icon: ClipboardList, role: 'admin' },
-    { label: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench },
-    { label: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
+    { label: 'Machine Requests', href: '/dashboard/machine-requests', icon: ClipboardList, role: 'admin' },
+    { label: 'Maintenance', href: '/dashboard/maintenance', icon: Wrench, roles: ['admin', 'manager', 'technician'] },
+    { label: 'Reports', href: '/dashboard/reports', icon: BarChart3, roles: ['admin', 'manager', 'technician'] },
     { label: 'AI Chat', href: '/dashboard/ai-chat', icon: MessageSquare },
     { label: 'Finances & Stock', href: '/dashboard/admin/finances', icon: DollarSign, role: 'admin' },
-    { label: 'Admin', href: '/dashboard/admin', icon: Shield, role: 'admin' },
+    { label: 'Admin panel', href: '/dashboard/admin', icon: Shield, role: 'admin' },
   ];
 
   // 1) Fetch Notifications intelligently
@@ -136,7 +141,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <nav className="px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
             {navigation
-              .filter(link => !link.role || link.role === user?.role)
+              .filter(link => {
+                if (!link.role && !link.roles) return true;
+                if (link.role && link.role === user?.role) return true;
+                if (link.roles && link.roles.includes(user?.role)) return true;
+                return false;
+              })
               .map((link) => (
                 <SidebarItem
                   key={link.href}

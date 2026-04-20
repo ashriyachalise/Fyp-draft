@@ -12,13 +12,19 @@ export default function LoginPage() {
   const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  /* 
   useEffect(() => {
     if (user && !authLoading) {
-      router.push('/dashboard');
+      if (user.role === 'client') {
+        router.push('/shop');
+      } else if (user.role === 'technician') {
+        router.push('/technician');
+      } else if (user.role === 'contractor') {
+        router.push('/contractor');
+      } else {
+        router.push('/dashboard');
+      }
     }
   }, [user, authLoading, router]);
-  */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,9 +32,10 @@ export default function LoginPage() {
     setLocalLoading(true);
     try {
       await login(email, password);
+      // We don't setLocalLoading(false) here because we want the loader 
+      // to stay visible until the page actually redirects.
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check credentials.');
-    } finally {
       setLocalLoading(false);
     }
   };

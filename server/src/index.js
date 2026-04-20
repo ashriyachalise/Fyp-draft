@@ -24,6 +24,7 @@ app.use('/api/stats', require('./routes/statsRoutes'));
 app.use('/api/cart', require('./routes/cartRoutes'));
 app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/monitoring', require('./routes/monitoringRoutes'));
+app.use('/api/lending', require('./routes/machineLendingRoutes'));
 
 app.get('/', (req, res) => {
   res.send('Heavy Machinery Parts Inventory API is running...');

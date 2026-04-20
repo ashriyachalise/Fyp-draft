@@ -8,7 +8,7 @@ interface User {
   _id: string;
   username: string;
   email: string;
-  role: 'admin' | 'manager' | 'technician' | 'client';
+  role: 'admin' | 'manager' | 'technician' | 'client' | 'contractor';
 }
 
 interface AuthContextType {
@@ -52,9 +52,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     const { data } = await api.post('/users/login', { email, password });
     
-    // Set cookies with reasonable expiry (e.g., 7 days)
-    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 7 });
-    setCookie('role', data.role, { maxAge: 60 * 60 * 24 * 7 });
+    // Set cookies with reasonable expiry (e.g., 7 days) and explicit root path
+    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+    setCookie('role', data.role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
     
     setUser(data);
     
