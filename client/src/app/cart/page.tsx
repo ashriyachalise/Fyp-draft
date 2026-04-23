@@ -16,6 +16,8 @@ export default function CartPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/login');
+    } else if (!authLoading && user?.role === 'admin') {
+      router.replace('/dashboard');
     }
   }, [user, authLoading, router]);
 

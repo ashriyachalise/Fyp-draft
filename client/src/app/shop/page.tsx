@@ -16,6 +16,8 @@ export default function ShopPage() {
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace('/login');
+    } else if (!authLoading && user?.role === 'admin') {
+      router.replace('/dashboard');
     }
   }, [user, authLoading, router]);
 
@@ -92,10 +94,12 @@ export default function ShopPage() {
             <span className="font-bold hidden md:inline">AI Assistant</span>
             <span className="font-bold md:hidden">AI</span>
           </Link>
-          <Link href="/cart" className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all border border-slate-700">
-            <ShoppingCart size={18} className="text-blue-400" />
-            <span className="hidden sm:inline">My Cart</span>
-          </Link>
+          {user?.role !== 'admin' && (
+            <Link href="/cart" className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-xl transition-all border border-slate-700">
+              <ShoppingCart size={18} className="text-blue-400" />
+              <span className="hidden sm:inline">My Cart</span>
+            </Link>
+          )}
         </div>
       </nav>
 

@@ -4,6 +4,7 @@ const {
   getParts, 
   addPart, 
   updatePartQuantity,
+  updatePart,
   deletePart
 } = require('../controllers/inventoryController');
 const { protect, authorize } = require('../middleware/auth');
@@ -13,6 +14,7 @@ router.route('/')
   .post(protect, authorize('admin', 'manager', 'client'), addPart);
 
 router.route('/:id')
+  .put(protect, authorize('admin', 'manager'), updatePart)
   .delete(protect, authorize('admin', 'manager', 'client'), deletePart);
 
 router.patch('/:id/quantity', protect, authorize('admin', 'manager', 'technician', 'client'), updatePartQuantity);

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Box, 
   Search, 
@@ -11,16 +12,19 @@ import {
   ShoppingCart,
   MoreVertical,
   Filter,
-  Trash2
+  Trash2,
+  Edit2
 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import { useForm } from 'react-hook-form';
 
 export default function InventoryPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [parts, setParts] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPartId, setEditingPartId] = useState<string | null>(null);
   
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
 
@@ -50,13 +54,18 @@ export default function InventoryPage() {
 
   const onSubmit = async (data: any) => {
     try {
-      await api.post('/inventory', data);
+      if (editingPartId) {
+        await api.put(`/inventory/${editingPartId}`, data);
+      } else {
+        await api.post('/inventory', data);
+      }
       setIsModalOpen(false);
+      setEditingPartId(null);
       reset();
       fetchInventory();
     } catch (err: any) {
-      console.error('Error adding part:', err);
-      alert(err.response?.data?.message || 'Failed to add part');
+      console.error(editingPartId ? 'Error updating part:' : 'Error adding part:', err);
+      alert(err.response?.data?.message || (editingPartId ? 'Failed to update part' : 'Failed to add part'));
     }
   };
 
@@ -86,7 +95,11 @@ export default function InventoryPage() {
           <p className="text-slate-400 mt-1">Manage stock levels and technical specifications.</p>
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingPartId(null);
+            reset({ name: '', partNumber: '', description: '', category: '', price: '', quantityInStock: '', minimumStockLevel: '' });
+            setIsModalOpen(true);
+          }}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all shadow-lg shadow-blue-500/20"
         >
           <Plus size={18} />
@@ -186,14 +199,37 @@ export default function InventoryPage() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                       <button 
-                         onClick={() => handleAddToCart(part._id)}
-                         disabled={part.quantityInStock <= 0}
-                         className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-all"
-                       >
-                         <ShoppingCart size={16} />
-                         Buy
-                       </button>
+                       {user?.role !== 'admin' && (
+                         <button 
+                           onClick={() => handleAddToCart(part._id)}
+                           disabled={part.quantityInStock <= 0}
+                           className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-sm font-medium rounded-lg transition-all"
+                         >
+                           <ShoppingCart size={16} />
+                           Buy
+                         </button>
+                       )}
+                       {user?.role === 'admin' && (
+                         <button
+                           onClick={() => {
+                             setEditingPartId(part._id);
+                             reset({
+                               name: part.name,
+                               partNumber: part.partNumber,
+                               description: part.description,
+                               category: part.category,
+                               price: part.price,
+                               quantityInStock: part.quantityInStock,
+                               minimumStockLevel: part.minimumStockLevel
+                             });
+                             setIsModalOpen(true);
+                           }}
+                           className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 hover:text-emerald-400 text-sm font-medium rounded-lg transition-all"
+                         >
+                           <Edit2 size={16} />
+                           Edit
+                         </button>
+                       )}
                        <button
                          onClick={() => handleDelete(part._id)}
                          className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-500 hover:text-red-400 text-sm font-medium rounded-lg transition-all"
@@ -212,23 +248,29 @@ export default function InventoryPage() {
 
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Add New Part"
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingPartId(null);
+          reset();
+        }} 
+        title={editingPartId ? "Edit Part" : "Add New Part"}
       >
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-300">Part Name</label>
               <input 
+                disabled={!!editingPartId}
                 {...register('name', { required: 'Name is required' })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none"
+                className={`w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none ${editingPartId ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
             </div>
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-300">Part Number</label>
               <input 
+                disabled={!!editingPartId}
                 {...register('partNumber', { required: 'Part # is required' })}
-                className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none"
+                className={`w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none ${editingPartId ? 'opacity-50 cursor-not-allowed' : ''}`}
               />
             </div>
           </div>
@@ -251,7 +293,7 @@ export default function InventoryPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-300">Price (Rs.)</label>
               <input 
-                type="number" step="0.01"
+                type="number" step="0.01" min="0"
                 {...register('price')}
                 className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none"
               />
@@ -261,7 +303,7 @@ export default function InventoryPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-300">Quantity</label>
               <input 
-                type="number"
+                type="number" min="0"
                 {...register('quantityInStock')}
                 className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none"
               />
@@ -269,7 +311,7 @@ export default function InventoryPage() {
             <div className="space-y-1">
               <label className="text-sm font-medium text-slate-300">Min Level</label>
               <input 
-                type="number"
+                type="number" min="0"
                 {...register('minimumStockLevel')}
                 className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-white outline-none"
               />
@@ -280,7 +322,7 @@ export default function InventoryPage() {
             type="submit"
             className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl mt-4 transition-all"
           >
-            {isSubmitting ? 'Adding...' : 'Add to Inventory'}
+            {isSubmitting ? (editingPartId ? 'Updating...' : 'Adding...') : (editingPartId ? 'Update Part' : 'Add to Inventory')}
           </button>
         </form>
       </Modal>

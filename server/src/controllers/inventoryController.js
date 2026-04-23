@@ -69,6 +69,32 @@ exports.updatePartQuantity = async (req, res) => {
   }
 };
 
+// @desc    Update part details
+// @route   PUT /api/inventory/:id
+// @access  Private/Admin/Manager
+exports.updatePart = async (req, res) => {
+  const { description, category, price, quantityInStock, minimumStockLevel } = req.body;
+
+  try {
+    const part = await Part.findById(req.params.id);
+
+    if (part) {
+      if (description !== undefined) part.description = description;
+      if (category !== undefined) part.category = category;
+      if (price !== undefined) part.price = price;
+      if (quantityInStock !== undefined) part.quantityInStock = quantityInStock;
+      if (minimumStockLevel !== undefined) part.minimumStockLevel = minimumStockLevel;
+
+      const updatedPart = await part.save();
+      res.json(updatedPart);
+    } else {
+      res.status(404).json({ message: 'Part not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
 // @desc    Delete a part
 // @route   DELETE /api/inventory/:id
 // @access  Private/Admin/Manager/Client

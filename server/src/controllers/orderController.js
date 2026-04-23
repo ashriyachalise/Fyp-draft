@@ -24,6 +24,14 @@ exports.createOrder = async (req, res) => {
     // Calculate total
     const totalAmount = cart.totalAmount;
 
+    // Verify all stock first
+    for (const item of cart.items) {
+      const part = await Part.findById(item.part._id);
+      if (!part || part.quantityInStock < item.quantity) {
+        return res.status(400).json({ message: `Not enough stock available for ${item.name}` });
+      }
+    }
+
     // Create order
     const order = new Order({
       user: req.user._id,
