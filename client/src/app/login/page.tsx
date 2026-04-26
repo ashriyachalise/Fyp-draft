@@ -12,28 +12,16 @@ export default function LoginPage() {
   const { login, user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user && !authLoading) {
-      if (user.role === 'client') {
-        router.push('/shop');
-      } else if (user.role === 'technician') {
-        router.push('/technician');
-      } else if (user.role === 'contractor') {
-        router.push('/contractor');
-      } else {
-        router.push('/dashboard');
-      }
-    }
-  }, [user, authLoading, router]);
+  // Automatic redirection is disabled to prevent "automatic admin login".
+  // This ensures users are always presented with the login form when hitting /login.
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLocalLoading(true);
     try {
-      await login(email, password);
-      // We don't setLocalLoading(false) here because we want the loader 
-      // to stay visible until the page actually redirects.
+      // Normalizing email to lowercase to prevent casing issues
+      await login(email.toLowerCase(), password);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check credentials.');
       setLocalLoading(false);
@@ -56,10 +44,21 @@ export default function LoginPage() {
             <Shield className="w-10 h-10 text-blue-500 group-hover:rotate-12 transition-transform" />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tighter italic">HEAVY<span className="text-blue-500">MACH</span></h1>
+          <p className="text-slate-500 mt-2 font-medium">Secure Access Portal</p>
         </div>
 
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12">
+            <Shield size={120} />
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-white italic uppercase tracking-tight">
+                Personnel <span className="text-blue-500">Login</span>
+              </h2>
+            </div>
+
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Personnel Email</label>
               <div className="relative group">

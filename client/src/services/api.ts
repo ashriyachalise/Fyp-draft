@@ -6,7 +6,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = getCookie('token');
+  const token = getCookie('heavymach_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,8 +19,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear authentication state
-      deleteCookie('token');
-      deleteCookie('role');
+      deleteCookie('heavymach_token');
+      deleteCookie('heavymach_role');
       
       // Redirect to login if on the client side
       if (typeof window !== 'undefined') {

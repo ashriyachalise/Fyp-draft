@@ -27,7 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const checkUser = async () => {
-      const token = getCookie('token');
+      const token = getCookie('heavymach_token');
       if (token) {
         try {
           // Set a 5-second timeout for the profile check
@@ -39,8 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error) {
           console.error('Auth check failed or timed out:', error);
           // Clear cookies and state if authentication fails
-          deleteCookie('token');
-          deleteCookie('role');
+          deleteCookie('heavymach_token');
+          deleteCookie('heavymach_role');
           setUser(null);
         }
       }
@@ -53,8 +53,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { data } = await api.post('/users/login', { email, password });
     
     // Set cookies with reasonable expiry (e.g., 7 days) and explicit root path
-    setCookie('token', data.token, { maxAge: 60 * 60 * 24 * 7, path: '/' });
-    setCookie('role', data.role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+    setCookie('heavymach_token', data.token, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+    setCookie('heavymach_role', data.role, { maxAge: 60 * 60 * 24 * 7, path: '/' });
     
     setUser(data);
     
@@ -62,14 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       router.push('/shop');
     } else if (data.role === 'technician') {
       router.push('/technician');
+    } else if (data.role === 'contractor') {
+      router.push('/contractor');
     } else {
       router.push('/dashboard');
     }
   };
 
   const logout = () => {
-    deleteCookie('token');
-    deleteCookie('role');
+    deleteCookie('heavymach_token');
+    deleteCookie('heavymach_role');
     setUser(null);
     router.push('/login');
   };
